@@ -1,0 +1,98 @@
+$pink: #CC2B5E
+$gray: #333333
+$white: #EFEFEF
+
+$border-color: $pink
+
+body
+    padding-bottom: 50px
+    background-color: $gray
+    color: $white
+
+section
+    padding: 0 50px
+
+#submit
+    display: block
+    margin: 0 auto
+    padding: 10px 15px
+
+    color: $white
+    font-size: 16px
+    letter-spacing: .2rem
+    background-color: $pink
+
+    border: none
+    border-radius: 2px
+
+    cursor: pointer
+
+    &:hover
+        background-color: darken($pink, 10%)
+
+input:focus, select:focus
+    border-color: $pink
+    box-shadow: 0 0 5px 0 rgba($pink, 0.5), 0 0 2px 0 rgba($pink, 0.5) inset
+    -webkit-box-shadow: 0 0 5px 0 rgba($pink, 0.5), 0 0 2px 0 rgba(pink, 0.5) inset
+    outline: none
+
+input, select
+    background-color: #222
+    color: $white
+
+#board
+    text-align: center
+    position: relative
+    padding: 0
+    margin: 0 auto
+    font-size: 24px
+
+
+.board
+    display: inline-block
+    margin-right: 50px
+    width: 100%
+
+
+
+/* BOARD ROWS */
+
+.board-row
+    display: block
+    width: auto
+    margin-top: -5px
+
+    &::after
+        content: ''
+        clear: both
+        display: block
+
+    &:first-child .board-cell
+        border-top: 1px solid $border-color
+    &:first-child .board-cell[data-hidden="false"]
+        border-top: 1px solid $white
+
+
+
+/* BOARD COLS */
+
+.board-cell
+    display: inline-block
+    float: left
+    width: 40px
+    height: 40px
+    text-align: center
+    cursor: pointer
+    border: 1px solid $border-color
+    border-left: none
+    border-top: none
+    line-height: 1.6
+    font-weight: bold
+
+    &:first-child
+        border-left: 1px solid $border-color
+
+    &[data-hidden="false"]
+        background-color: $pink
+        border: 1px solid $white
+        color: $white

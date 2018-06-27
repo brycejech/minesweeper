@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Minesweeper</title>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+
+        <link rel="stylesheet" type="text/css" href="https://basefront.brycejech.com/style/basefront.min.css">
+        <link rel="stylesheet" type="text/css" href="style/main.css">
+    </head>
+    <body>
+
+        <section>
+            <div class="container container-md">
+                <h1 class="u-cntr">Minesweeper</h1>
+                <div class="row">
+                    <h4 class="u-cntr">Board Size</h4>
+                    <div class="col-6">
+                        <label for="cols">Columns</label>
+                        <input id="cols" type="text" value="" placeholder="Num Cols">
+                    </div>
+                    <div class="col-6">
+                        <label for="rows">Rows</label>
+                        <input id="rows" type="text" value="" placeholder="Num Rows">
+                    </div>
+                    <div class="col-12">
+                        <label for="difficulty">Difficulty</label>
+                        <select id="difficulty">
+                            <option value="EASY">Easy</option>
+                            <option value="INTERMEDIATE" selected="selected">Intermediate</option>
+                            <option value="HARD">Hard</option>
+                            <option value="INSANE">Insane</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button id="submit" class="btn btn-block" type="button" role="button">Generate</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+
+            <div id="board"></div>
+
+        </section>
+
+        <script type="text/javascript" src="js/minesweeper.js"></script>
+    </body>
+</html>
