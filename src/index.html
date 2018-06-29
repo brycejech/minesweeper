@@ -7,36 +7,34 @@
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
 
         <link rel="stylesheet" type="text/css" href="https://basefront.brycejech.com/style/basefront.min.css">
+        <link rel="stylesheet" type="text/css" href="style/modal.min.css">
         <link rel="stylesheet" type="text/css" href="style/main.min.css">
+
+        <script type="text/javascript" src="js/lib/modal.min.js"></script>
     </head>
     <body>
 
         <section>
             <div class="container container-md">
                 <h1 class="u-cntr">Minesweeper</h1>
-                <div class="row">
-                    <h4 class="u-cntr">Board Size</h4>
-                    <div class="col-6">
-                        <label for="cols">Columns</label>
-                        <input id="cols" type="text" value="" placeholder="Num Cols">
+                <div class="game-controls row">
+                    <div class="col-4">
+                        <button id="btn-settings" class="btn btn-block btn-primary" data-toggle="modal" data-target="#settings-modal">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
                     </div>
-                    <div class="col-6">
-                        <label for="rows">Rows</label>
-                        <input id="rows" type="text" value="" placeholder="Num Rows">
+                    <div class="col-4">
+                        <button id="reset" class="btn btn-block btn-primary" type="button" role="button" onclick="window.game.reset()">
+                            <i class="fas fa-redo-alt"></i> Reset
+                        </button>
                     </div>
-                    <div class="col-12">
-                        <label for="difficulty">Difficulty</label>
-                        <select id="difficulty">
-                            <option value="EASY">Easy</option>
-                            <option value="INTERMEDIATE" selected="selected">Intermediate</option>
-                            <option value="HARD">Hard</option>
-                            <option value="INSANE">Insane</option>
-                        </select>
-                    </div>
-                    <div class="col-12">
-                        <button id="submit" class="btn btn-block" type="button" role="button">Generate</button>
+                    <div class="col-4">
+                        <button id="hint" class="btn btn-block btn-primary" type="button" role="button" onclick="window.game.hint()">
+                            <i class="far fa-lightbulb"></i> Hint
+                        </button>
                     </div>
                 </div>
+
             </div>
         </section>
 
@@ -45,6 +43,38 @@
             <div id="board"></div>
 
         </section>
+
+        <div class="modal" id="settings-modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-close">&times;</div>
+                    <h1 class="u-cntr">Game Settings</h1>
+                    <div class="">
+                        <h4 class="u-cntr">Board Size</h4>
+                        <div class="col-6">
+                            <label for="cols">Columns</label>
+                            <input id="cols" type="text" value="24" placeholder="Num Cols">
+                        </div>
+                        <div class="col-6">
+                            <label for="rows">Rows</label>
+                            <input id="rows" type="text" value="16" placeholder="Num Rows">
+                        </div>
+                        <div class="col-12">
+                            <label for="difficulty">Difficulty</label>
+                            <select id="difficulty">
+                                <option value="EASY">Easy</option>
+                                <option value="INTERMEDIATE" selected="selected">Intermediate</option>
+                                <option value="HARD">Hard</option>
+                                <option value="INSANE">Insane</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <button id="submit" class="btn btn-block btn-primary" type="button" role="button">Start</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <script type="text/javascript" src="js/minesweeper.js"></script>
     </body>

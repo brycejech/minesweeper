@@ -34,46 +34,93 @@
         EMPTY = '<i class="far fa-smile"></i>',
         FLAG  = '<i class="fas fa-map-pin"></i>';
 
-    btn_submit.addEventListener('click', function(){
-        var cols       = parseInt(ctrl_cols.value),
-            rows       = parseInt(ctrl_rows.value),
-            difficulty = difficultyMap[ddl_difficulty.value];
 
-        ctrl_board.style['width'] = ((cols * 40)).toString() + 'px';
-        var board = window.board = new Board(cols, rows, difficulty);
-        ctrl_board.innerHTML = board.draw();
-    });
 
-    ctrl_board.addEventListener('click', function(e){
+    function Minesweeper(cols, rows, difficulty, el){
+        this.el = el instanceof HTMLElement ? el : document.querySelector(el);
+        el.style['width'] = ((cols * 40)).toString() + 'px';
 
-        var targetCell = _getClickedCell(e);
+        this.cols = cols;
+        this.rows = rows;
+        this.difficulty = difficulty;
+        this.board = window.board = new Board(cols, rows, difficulty);
+        this.gameOver = false;
 
-        if(targetCell){
+        this.draw();
+    }
 
-            var x = targetCell.getAttribute('data-x'),
-                y = targetCell.getAttribute('data-y');
+    Minesweeper.prototype.reset = function(){
+        this.gameOver = false;
+        this.board = window.board = new Board(this.cols, this.rows, this.difficulty);
+        this.el.innerHTML = this.board.draw();
+    }
 
-            board.clickCell(x,y);
-            ctrl_board.innerHTML = board.draw();
-        }
-    });
+    Minesweeper.prototype.draw = function(){
+        this.el.innerHTML = this.board.draw();
+    }
 
-    ctrl_board.addEventListener('contextmenu', function(e){
-        if(!e.ctrlKey){
-            e.preventDefault();
+    Minesweeper.prototype.hint = function(){
+        this.board.hint();
+    }
 
-            var targetCell = _getClickedCell(e);
+    Minesweeper.prototype.clickCell = function(x, y){
+        if(!this.gameOver){
+            const cell = this.board.clickCell(x, y);
+            this.draw();
 
-            if(targetCell){
-                var x = targetCell.getAttribute('data-x'),
-                    y = targetCell.getAttribute('data-y');
-
-                board.clickCell(x, y, 'flag');
-                ctrl_board.innerHTML = board.draw();
+            if(cell && cell.isBomb && !cell.flagged){
+                this.gameOver = true;
+                alert('You clicked a bomb!');
             }
 
+            if(this.isSolved()){
+                alert('You win!!!');
+            }
         }
-    })
+    }
+
+    Minesweeper.prototype.flagCell = function(x, y){
+        this.board.flagCell(x, y);
+        this.draw();
+        if(this.isSolved()){
+            alert('You win!!');
+        }
+    }
+
+    Minesweeper.prototype.isSolved = function(){
+
+        var flaggedBombs = this.board
+            .getBombs()
+            .filter(bomb => bomb.flagged)
+
+        var clickedCells = this.board
+            .getNonBombs()
+            .filter(cell => !cell.hidden)
+
+        if(clickedCells.length + flaggedBombs.length === this.board.numCells){
+            return true;
+        }
+    }
+
+    Minesweeper.prototype.solve = function(){
+        var numNonBombs = this.board.numCells - this.board.numBombs;
+
+        this.board
+            .getBombs()
+            .forEach((bomb, i) => {
+                bomb.flag();
+                // if(i < this.board.numBombs - 1) bomb.flag();
+            });
+
+        this.board
+            .getNonBombs()
+            .forEach((cell, i)=> {
+                cell.click();
+                // if(i < (numNonBombs - 1)) cell.click();
+            });
+
+        this.draw();
+    }
 
     /*
         =====
@@ -83,8 +130,8 @@
     function Board(cols, rows, difficulty){
         this.cols      = cols;
         this.rows      = rows;
-        this.numCols   = cols * rows;
-        this.numBombs  = Math.round(difficulty * this.numCols);
+        this.numCells  = cols * rows;
+        this.numBombs  = Math.round(difficulty * this.numCells);
         this.hintCount = 0;
 
         this.board = (() => {
@@ -139,22 +186,42 @@
     }
 
     Board.prototype.forEach = function(fn){
+        let count = 0;
         for(let i = 0; i < this.rows; i++){
             const row = this.board[i];
             for(let j = 0; j < this.cols; j++){
                 const cell = row[j];
-                fn.call(cell, cell);
+                fn.call(cell, cell, count++);
             }
         }
     }
 
+    Board.prototype.getBombs = function(){
+        var bombs = [];
+
+        this.forEach(cell => { if(cell.isBomb) bombs.push(cell) });
+
+        return bombs;
+    }
+
+    Board.prototype.getNonBombs = function(){
+        var nonBombs = [];
+
+        this.forEach(cell => { if(!cell.isBomb) nonBombs.push(cell) });
+
+        return nonBombs;
+    }
+
     Board.prototype.init = function(){
-        for(let i = 0; i < this.numBombs; i++){
+        for(var i = 0; i < this.numBombs; i++){
             const cell = this.randCell();
+            if(cell.isBomb){
+                i--;
+                continue;
+            }
             cell.set(BOMB);
             cell.isBomb = true;
         }
-
         this.forEach(cell => cell.init());
     }
 
@@ -166,12 +233,18 @@
         this.forEach(cell => cell.clicked = false);
     }
 
-    Board.prototype.clickCell = function(x, y, type){
+    Board.prototype.clickCell = function(x, y){
         const cell = this.get(x,y);
         if(!cell) return;
 
-        cell.click(type);
-        if(!type && !cell.flagged && cell.isBomb) alert('You clicked a bomb!');
+        return cell.click();
+    }
+
+    Board.prototype.flagCell = function(x, y){
+        const cell = this.get(x, y);
+        if(!cell || !cell.hidden) return;
+
+        return cell.flag();
     }
 
     Board.prototype.hint = function(){
@@ -218,6 +291,11 @@
         return this;
     }
 
+    Cell.prototype.flag = function(){
+        this.flagged = !this.flagged;
+        return this;
+    }
+
     Cell.prototype.setPos = function(x, y){
         this.x = x;
         this.y = y;
@@ -244,23 +322,18 @@
         return this;
     }
 
-    Cell.prototype.click = function(flag){
-        if(this.hidden && flag){
-            this.flagged = !this.flagged
-        }
-        else{
-            if(!this.flagged){
-                this.hidden = false;
-                if(this.clicked) return;
-                this.clicked = true;
+    Cell.prototype.click = function(){
 
-                if(this.numBombs === 0){
-                    this.neighbors().forEach( cell => cell.click() );
-                }
-            }
+        if(this.flagged || this.clicked) return this;
+
+        this.hidden  = false;
+        this.clicked = true;
+
+        if(this.numBombs === 0){
+            this.neighbors().forEach( cell => cell.click() );
         }
 
-
+        return this;
     }
 
     Cell.prototype.neighbors = function(){
@@ -303,4 +376,50 @@
 
         return cell ? cell : undefined;
     }
+
+    function _getClickedCoords(e){
+        const el = _getClickedCell(e);
+        if(!el) return;
+
+        return {
+            x: el.getAttribute('data-x'),
+            y: el.getAttribute('data-y')
+        }
+    }
+
+
+    /*
+        ==========
+        INITIALIZE
+        ==========
+    */
+
+    // Game instance
+    var game = window.game = new Minesweeper(24, 16, difficultyMap['INTERMEDIATE'], ctrl_board);
+
+    // Event Listeners
+    btn_submit.addEventListener('click', function(){
+        var cols       = parseInt(ctrl_cols.value),
+            rows       = parseInt(ctrl_rows.value),
+            difficulty = difficultyMap[ddl_difficulty.value];
+
+        window.game = new Minesweeper(cols, rows, difficulty, ctrl_board);
+        modal('#settings-modal');
+    });
+
+    ctrl_board.addEventListener('click', function(e){
+        var { x, y } = _getClickedCoords(e);
+
+        if(x && y) window.game.clickCell(x,y);
+    });
+
+    ctrl_board.addEventListener('contextmenu', function(e){
+        if(!e.ctrlKey){
+            e.preventDefault();
+
+            var { x, y } = _getClickedCoords(e);
+
+            if(x && y) window.game.flagCell(x, y);
+        }
+    });
 })();
