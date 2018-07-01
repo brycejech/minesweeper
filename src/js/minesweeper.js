@@ -9,13 +9,17 @@
     */
 
     // Inputs
-    var btn_submit     = document.getElementById('submit'),
+    const btn_submit   = document.getElementById('submit'),
         ctrl_cols      = document.getElementById('cols'),
         ctrl_rows      = document.getElementById('rows'),
         ddl_difficulty = document.getElementById('difficulty');
 
     // Containers
-    var ctrl_board = document.getElementById('board');
+    const ctrl_board = document.getElementById('board');
+
+    // Game Info
+    const ctrl_numBombs = document.getElementById('numBombs'),
+          ctrl_timer    = document.getElementById('timer');
 
 
     /*
@@ -34,25 +38,42 @@
         EMPTY = '<i class="far fa-smile"></i>',
         FLAG  = '<i class="fas fa-map-pin"></i>';
 
+    const defaultGame = {
+        cols: 24,
+        rows: 16,
+        difficulty: difficultyMap['INTERMEDIATE']
+    }
+
 
 
     function Minesweeper(cols, rows, difficulty, el){
         this.el = el instanceof HTMLElement ? el : document.querySelector(el);
         el.style['width'] = ((cols * 40)).toString() + 'px';
 
-        this.cols = cols;
-        this.rows = rows;
-        this.difficulty = difficulty;
-        this.board = window.board = new Board(cols, rows, difficulty);
-        this.gameOver = false;
+        this.timer = new Timer(ctrl_timer);
 
-        this.draw();
+        this.init(cols, rows, difficulty);
     }
 
     Minesweeper.prototype.reset = function(){
+        this.init();
+    }
+
+    Minesweeper.prototype.init = function(cols, rows, difficulty){
         this.gameOver = false;
-        this.board = window.board = new Board(this.cols, this.rows, this.difficulty);
-        this.el.innerHTML = this.board.draw();
+
+        this.cols = cols || this.cols;
+        this.rows = rows || this.rows;
+        this.difficulty = difficulty || this.difficulty;
+
+        this.board    = new Board(this.cols, this.rows, this.difficulty);
+        this.numBombs = this.board.numBombs;
+
+        this.timer.reset().draw();
+
+        ctrl_numBombs.innerText = this.numBombs;
+
+        this.draw();
     }
 
     Minesweeper.prototype.draw = function(){
@@ -60,30 +81,34 @@
     }
 
     Minesweeper.prototype.hint = function(){
-        this.board.hint();
+        !this.gameOver && this.board.hint()
     }
 
     Minesweeper.prototype.clickCell = function(x, y){
-        if(!this.gameOver){
-            const cell = this.board.clickCell(x, y);
-            this.draw();
+        if(this.gameOver) return;
 
-            if(cell && cell.isBomb && !cell.flagged){
-                this.gameOver = true;
-                alert('You clicked a bomb!');
-            }
+        const cell = this.board.clickCell(x, y);
+        this.draw();
 
-            if(this.isSolved()){
-                alert('You win!!!');
-            }
+        if(cell && cell.isBomb && !cell.flagged){
+            this.gameOver = true;
+            alert('You clicked a bomb!');
+        }
+
+        if(this.isSolved()){
+            alert('You win!!!');
+            this.gameOver = true;
         }
     }
 
     Minesweeper.prototype.flagCell = function(x, y){
+        if(this.gameOver) return
+
         this.board.flagCell(x, y);
         this.draw();
         if(this.isSolved()){
             alert('You win!!');
+            this.gameOver = true;
         }
     }
 
@@ -258,7 +283,7 @@
                     found = true;
                     this.hintCount++;
                 }
-                ctrl_board.innerHTML = board.draw();
+                ctrl_board.innerHTML = this.draw();
             });
         }
         else{ alert('No more hints! Work the problem ;)') }
@@ -353,6 +378,50 @@
 
     /*
         ==========
+        GAME TIMER
+        ==========
+    */
+    function Timer(el){
+        this.el = el instanceof HTMLElement ? el : document.querySelector(el);
+
+        this.elapsed = (60 * 58) + 45;
+
+        setInterval(this.tick.bind(this), 1000);
+
+        return this;
+    }
+
+    Timer.prototype.tick = function(){
+        ++this.elapsed;
+
+        this.draw();
+
+        return this;
+    }
+
+    Timer.prototype.draw = function(){
+        this.el.innerText = this.format();
+
+        return this;
+    }
+
+    Timer.prototype.format = function(){
+        var hour = Math.floor(this.elapsed / (60 * 60)),
+            min  = Math.floor((this.elapsed - (hour * 60 * 60)) / 60),
+            sec  = this.elapsed - (hour * 60 * 60) - (min * 60);
+
+        return `${_zeroPad(hour)}:${_zeroPad(min)}:${_zeroPad(sec)}`;
+    }
+
+    Timer.prototype.reset = function(){
+        this.elapsed = 0;
+
+        return this;
+    }
+
+
+    /*
+        ==========
         HELPER FNs
         ==========
     */
@@ -387,7 +456,11 @@
         }
     }
 
+    function _zeroPad(str){
+        str = str.toString();
 
+        return str.length >= 2 ? str : '0' + str;
+    }
     /*
         ==========
         INITIALIZE
@@ -395,7 +468,7 @@
     */
 
     // Game instance
-    var game = window.game = new Minesweeper(24, 16, difficultyMap['INTERMEDIATE'], ctrl_board);
+    var game = window.game = new Minesweeper(defaultGame.cols, defaultGame.rows, defaultGame.difficulty, ctrl_board);
 
     // Event Listeners
     btn_submit.addEventListener('click', function(){
