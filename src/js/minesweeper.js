@@ -48,23 +48,22 @@
 
     function Minesweeper(cols, rows, difficulty, el){
         this.el = el instanceof HTMLElement ? el : document.querySelector(el);
+        // prevent rows from wrapping
         el.style['width'] = ((cols * 40)).toString() + 'px';
+
+        this.cols = cols, this.rows = rows, this.difficulty = difficulty;
 
         this.timer = new Timer(ctrl_timer);
 
-        this.init(cols, rows, difficulty);
+        this.init();
     }
 
     Minesweeper.prototype.reset = function(){
         this.init();
     }
 
-    Minesweeper.prototype.init = function(cols, rows, difficulty){
+    Minesweeper.prototype.init = function(){
         this.gameOver = false;
-
-        this.cols = cols || this.cols;
-        this.rows = rows || this.rows;
-        this.difficulty = difficulty || this.difficulty;
 
         this.board    = new Board(this.cols, this.rows, this.difficulty);
         this.numBombs = this.board.numBombs;
@@ -386,7 +385,7 @@
 
         this.elapsed = (60 * 58) + 45;
 
-        setInterval(this.tick.bind(this), 1000);
+        this.interval = setInterval(this.tick.bind(this), 1000);
 
         return this;
     }
@@ -414,7 +413,11 @@
     }
 
     Timer.prototype.reset = function(){
+
         this.elapsed = 0;
+        
+        clearInterval(this.interval);
+        this.interval = setInterval(this.tick.bind(this), 1000);
 
         return this;
     }
