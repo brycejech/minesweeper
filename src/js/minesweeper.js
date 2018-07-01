@@ -91,19 +91,25 @@
 
         if(cell && cell.isBomb && !cell.flagged){
             this.gameOver = true;
+            this.timer.stop();
             alert('You clicked a bomb!');
         }
 
         if(this.isSolved()){
             alert('You win!!!');
             this.gameOver = true;
+            this.timer.stop();
         }
     }
 
     Minesweeper.prototype.flagCell = function(x, y){
         if(this.gameOver) return
 
-        this.board.flagCell(x, y);
+        const cell = this.board.flagCell(x, y);
+
+        cell.flagged ? --this.numBombs : ++this.numBombs;
+        ctrl_numBombs.innerText = this.numBombs;
+
         this.draw();
         if(this.isSolved()){
             alert('You win!!');
@@ -413,15 +419,26 @@
     }
 
     Timer.prototype.reset = function(){
+        return this.stop().set(0).start();
+    }
 
-        this.elapsed = 0;
-        
+    Timer.prototype.stop = function(){
         clearInterval(this.interval);
+
+        return this;
+    }
+
+    Timer.prototype.start = function(){
         this.interval = setInterval(this.tick.bind(this), 1000);
 
         return this;
     }
 
+    Timer.prototype.set = function(int){
+        this.elapsed = parseInt(int) || 0;
+
+        return this;
+    }
 
     /*
         ==========
