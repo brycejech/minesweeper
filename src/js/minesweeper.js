@@ -410,13 +410,22 @@
         return this;
     }
 
-    Timer.prototype.format = function(){
-        var hour = Math.floor(this.elapsed / (60 * 60)),
-            min  = Math.floor((this.elapsed - (hour * 60 * 60)) / 60),
-            sec  = this.elapsed - (hour * 60 * 60) - (min * 60);
+    Timer.prototype.format = (() => {
 
-        return `${_zeroPad(hour)}:${_zeroPad(min)}:${_zeroPad(sec)}`;
-    }
+        function _pad(str){
+            str = str.toString();
+
+            return str.length >= 2 ? str : '0' + str;
+        }
+
+        return function format(){
+            var hour = Math.floor(this.elapsed / (60 * 60)),
+                min  = Math.floor((this.elapsed - (hour * 60 * 60)) / 60),
+                sec  = this.elapsed - (hour * 60 * 60) - (min * 60);
+
+            return `${_pad(hour)}:${_pad(min)}:${_pad(sec)}`;
+        }
+    })();
 
     Timer.prototype.reset = function(){
         return this.stop().set(0).start();
@@ -476,11 +485,7 @@
         }
     }
 
-    function _zeroPad(str){
-        str = str.toString();
 
-        return str.length >= 2 ? str : '0' + str;
-    }
     /*
         ==========
         INITIALIZE
@@ -488,7 +493,7 @@
     */
 
     // Game instance
-    var game = window.game = new Minesweeper(defaultGame.cols, defaultGame.rows, defaultGame.difficulty, ctrl_board);
+    let game = window.game = new Minesweeper(defaultGame.cols, defaultGame.rows, defaultGame.difficulty, ctrl_board);
 
     // Event Listeners
     btn_submit.addEventListener('click', function(){
