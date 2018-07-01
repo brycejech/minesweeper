@@ -152,6 +152,12 @@
         this.draw();
     }
 
+    Minesweeper.prototype.destroy = function(){
+        this.timer.stop();
+
+        return this;
+    }
+
     /*
         =====
         BOARD
@@ -495,18 +501,22 @@
     // Game instance
     let game = window.game = new Minesweeper(defaultGame.cols, defaultGame.rows, defaultGame.difficulty, ctrl_board);
 
-    // Event Listeners
-    btn_submit.addEventListener('click', function(){
-        var cols       = parseInt(ctrl_cols.value),
-            rows       = parseInt(ctrl_rows.value),
-            difficulty = difficultyMap[ddl_difficulty.value];
 
+    function newGame(){
+        const cols       = parseInt(ctrl_cols.value),
+              rows       = parseInt(ctrl_rows.value),
+              difficulty = difficultyMap[ddl_difficulty.value];
+
+        window.game.destroy();
         window.game = new Minesweeper(cols, rows, difficulty, ctrl_board);
         modal('#settings-modal');
-    });
+    }
+
+    // Event Listeners
+    btn_submit.addEventListener('click', newGame);
 
     ctrl_board.addEventListener('click', function(e){
-        var { x, y } = _getClickedCoords(e);
+        const { x, y } = _getClickedCoords(e);
 
         if(x && y) window.game.clickCell(x,y);
     });
@@ -515,9 +525,19 @@
         if(!e.ctrlKey){
             e.preventDefault();
 
-            var { x, y } = _getClickedCoords(e);
+            const { x, y } = _getClickedCoords(e);
 
             if(x && y) window.game.flagCell(x, y);
         }
     });
+
+    document.addEventListener('keypress', function(e){
+        if(e.key === 'Enter'){
+            const modal = document.getElementById('settings-modal');
+            if(/active/.test(modal.className)){
+                newGame()
+            }
+        }
+    });
+
 })();
