@@ -98,11 +98,11 @@
         if(cell && cell.isBomb && !cell.flagged){
             this.gameOver = true;
             this.timer.stop();
-            _message('<h3>You clicked a bomb!<br>Game Over!</h3>', 'bad');
+            _message('<h3>You clicked a bomb!<br>Game Over!</h3>');
         }
 
         if(this.isSolved()){
-            _message('<h3>Congratulations!!<br>You win!!!</h3>', 'good');
+            _message('<h3>Congratulations!!<br>You win!!!</h3>');
             this.gameOver = true;
             this.timer.stop();
         }
@@ -118,7 +118,7 @@
 
         this.draw();
         if(this.isSolved()){
-            alert('You win!!');
+            _message('<h3>Congratulations!!<br>You win!!!</h3>');
             this.gameOver = true;
         }
     }
