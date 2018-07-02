@@ -59,7 +59,13 @@
     }
 
     Minesweeper.prototype.reset = function(){
+
         this.init();
+
+        const msg = document.getElementById('message');
+
+        if(msg) msg.classList.remove('active');
+
     }
 
     Minesweeper.prototype.init = function(){
@@ -92,11 +98,11 @@
         if(cell && cell.isBomb && !cell.flagged){
             this.gameOver = true;
             this.timer.stop();
-            alert('You clicked a bomb!');
+            _message('<h3>You clicked a bomb!<br>Game Over!</h3>', 'bad');
         }
 
         if(this.isSolved()){
-            alert('You win!!!');
+            _message('<h3>Congratulations!!<br>You win!!!</h3>', 'good');
             this.gameOver = true;
             this.timer.stop();
         }
@@ -491,7 +497,20 @@
         }
     }
 
+    function _message(message, type){
+        const msgModal = document.getElementById('message-modal'),
+              el       = document.getElementById('message');
 
+        el.innerHTML = '<div class="content">' + message + '</div>';
+
+        modal(msgModal)
+
+        setTimeout(() => {
+            if(msgModal.classList.contains('active')){
+                modal(msgModal);
+            }
+        }, 10000);
+    }
     /*
         ==========
         INITIALIZE

@@ -1,17 +1,107 @@
-$pink: #CC2B5E
-$gray: #333333
+// VARIABLES
+$pink:  #CC2B5E
+$gray:  #333333
 $white: #EFEFEF
+
+$green: #006E00
+$blue:  #1F60AA
+$red:   #CC1F1F
 
 $border-color: $pink
 
+// BASE
 body
     padding-bottom: 50px
     background-color: $gray
     color: $white
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6
+    font-weight: 300
+
 section
     padding: 0 50px
 
+
+// =======
+// GAME UI
+// =======
+.game-controls
+    button.btn
+        font-size: 18px
+    i
+        font-size: 18px
+.game-info
+    font-size: 24px
+    margin-bottom: 25px
+    padding-left: 2rem
+    padding-right: 2rem
+
+    i
+        position: relative
+        margin-right: 8px
+        top: -2px
+
+        &.fa-clock
+            top: 0px
+
+#board
+    text-align: center
+    position: relative
+    padding: 0
+    margin: 0 auto
+    font-size: 24px
+
+
+.board
+    display: inline-block
+    margin-right: 50px
+    width: 100%
+
+.board-row
+    display: block
+    width: auto
+    margin-top: -5px
+
+    &::after
+        content: ''
+        clear: both
+        display: block
+
+    &:first-child .board-cell
+        border-top: 1px solid $border-color
+    &:first-child .board-cell[data-hidden="false"]
+        border-top: 1px solid $white
+
+.board-cell
+    display: inline-block
+    float: left
+    width: 40px
+    height: 40px
+    text-align: center
+    cursor: pointer
+    border: 1px solid $border-color
+    border-left: none
+    border-top: none
+    line-height: 1.6
+    font-weight: bold
+
+    &:first-child
+        border-left: 1px solid $border-color
+
+    &[data-hidden="false"]
+        background-color: $pink
+        border: 1px solid $white
+        color: $white
+
+
+// =====================
+// FORM INPUTS / BUTTONS
+// =====================
 .btn.btn-block
     display: block
     width: 100%
@@ -34,35 +124,6 @@ section
     &:hover
         background-color: darken($pink, 10%)
 
-.game-controls
-    button.btn
-        font-size: 18px
-    i
-        font-size: 18px
-.game-info
-    font-size: 24px
-    margin-bottom: 25px
-    padding-left: 2rem
-    padding-right: 2rem
-
-    i
-        position: relative
-        margin-right: 8px
-        top: -2px
-
-        &.fa-clock
-            top: 0px
-
-#settings-modal
-    .modal-content
-        background-color: lighten($gray, 3%)
-
-    .modal-close
-        font-size: 36px
-        margin-right: 10px
-
-    h1
-        margin-top: -15px
 #submit
     display: block
     margin: 0 auto
@@ -79,59 +140,39 @@ input, select
     background-color: #222
     color: $white
 
-#board
-    text-align: center
-    position: relative
-    padding: 0
-    margin: 0 auto
-    font-size: 24px
+
+// ======
+// MODALS
+// ======
+#settings-modal
+    .modal-content
+        background-color: lighten($gray, 3%)
+
+    .modal-close
+        font-size: 36px
+        margin-right: 10px
+
+    h1
+        margin-top: -15px
 
 
-.board
-    display: inline-block
-    margin-right: 50px
-    width: 100%
+#message-modal
 
+    background-color: rgba(darken($gray, 10%), .9)
 
+    .modal-close
+        font-size: 36px
+        margin-top: -10px
 
-/* BOARD ROWS */
-
-.board-row
-    display: block
-    width: auto
-    margin-top: -5px
-
-    &::after
-        content: ''
-        clear: both
-        display: block
-
-    &:first-child .board-cell
-        border-top: 1px solid $border-color
-    &:first-child .board-cell[data-hidden="false"]
-        border-top: 1px solid $white
-
-
-
-/* BOARD COLS */
-
-.board-cell
-    display: inline-block
-    float: left
-    width: 40px
-    height: 40px
-    text-align: center
-    cursor: pointer
-    border: 1px solid $border-color
-    border-left: none
-    border-top: none
-    line-height: 1.6
-    font-weight: bold
-
-    &:first-child
-        border-left: 1px solid $border-color
-
-    &[data-hidden="false"]
+    .modal-content
+        margin-top: 150px
         background-color: $pink
-        border: 1px solid $white
         color: $white
+
+        .content
+            display: block
+            width: 100%
+            text-align: center
+
+            h3
+                margin-top: -15px
