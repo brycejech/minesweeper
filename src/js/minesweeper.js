@@ -36,7 +36,7 @@
 
     var BOMB  = '<i class="fas fa-poo"></i>',
         EMPTY = '<i class="far fa-smile"></i>',
-        FLAG  = '<i class="fas fa-map-pin"></i>';
+        FLAG  = '<i class="fab fa-font-awesome-flag"></i>';
 
     const defaultGame = {
         cols: 24,
@@ -99,10 +99,12 @@
             this.gameOver = true;
             this.timer.stop();
             _message('<h3>You clicked a bomb!<br>Game Over!</h3>');
+            new Audio('audio/mario-koopa-kid.mp3').play();
         }
 
         if(this.isSolved()){
             _message('<h3>Congratulations!!<br>You win!!!</h3>');
+            new Audio('audio/mario-castle-clear.mp3').play();
             this.gameOver = true;
             this.timer.stop();
         }
@@ -119,6 +121,7 @@
         this.draw();
         if(this.isSolved()){
             _message('<h3>Congratulations!!<br>You win!!!</h3>');
+            new Audio('audio/mario-castle-clear.mp3').play();
             this.gameOver = true;
         }
     }
