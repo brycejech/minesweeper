@@ -19,7 +19,7 @@ const ctrl_numBombs = document.getElementById('numBombs'),
 
 
 
-const game = (function(boardEl, numBombsEl, timerEl){
+const minesweeper = (function(boardEl, numBombsEl, timerEl){
 
     /*
         =========
@@ -49,7 +49,7 @@ const game = (function(boardEl, numBombsEl, timerEl){
 
         this.cols = cols, this.rows = rows, this.difficulty = difficulty;
 
-        this.timer = new Timer(ctrl_timer);
+        this.timer = new Timer(timerEl);
 
         this.init();
     }
@@ -594,7 +594,7 @@ const game = (function(boardEl, numBombsEl, timerEl){
               rows       = parseInt(ctrl_rows.value),
               difficulty = difficultyMap[ddl_difficulty.value];
 
-        game.reset(cols, rows, difficulty);
+        minesweeper.reset(cols, rows, difficulty);
         modal('#settings-modal');
     }
 
@@ -604,13 +604,13 @@ const game = (function(boardEl, numBombsEl, timerEl){
     ctrl_board.addEventListener('click', function(e){
         const { x, y } = getClickedCoords(e);
 
-        if(x && y) game.clickCell(x,y);
+        if(x && y) minesweeper.clickCell(x,y);
 
-        if(game.solved){
+        if(minesweeper.solved){
             _message('Congratulations!!<br>You win!!!');
             new Audio('audio/mario-castle-clear.mp3').play();
         }
-        else if(game.gameOver){
+        else if(minesweeper.gameOver){
             _message('You clicked a bomb!<br>Game Over!');
             new Audio('audio/mario-koopa-kid.mp3').play();
         }
@@ -622,9 +622,9 @@ const game = (function(boardEl, numBombsEl, timerEl){
 
             const { x, y } = getClickedCoords(e);
 
-            if(x && y) game.flagCell(x, y);
+            if(x && y) minesweeper.flagCell(x, y);
 
-            if(game.solved){
+            if(minesweeper.solved){
                 _message('Congratulations!!<br>You win!!!');
                 new Audio('audio/mario-castle-clear.mp3').play();
             }
