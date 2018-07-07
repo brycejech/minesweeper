@@ -517,6 +517,10 @@ const game = (function(boardEl, numBombsEl, timerEl){
         hints: {
             enumerable: true,
             get: function(){ return game.hints }
+        },
+        elapsed: {
+            enumerable: true,
+            get: function(){ return game.timer.format() }
         }
     });
 
@@ -532,7 +536,9 @@ const game = (function(boardEl, numBombsEl, timerEl){
         DOM INTERACTIONS
         ================
     */
-    function _message(message, type){
+
+    // Launch modal
+    function _message(message){
         const msgModal = document.getElementById('message-modal'),
               el       = document.getElementById('message');
 
