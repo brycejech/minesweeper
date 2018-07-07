@@ -1,26 +1,25 @@
 'use strict';
 
-(function(){
+/*
+    ===========
+    UI ELEMENTS
+    ===========
+*/
+const btn_submit     = document.getElementById('submit'),
+      ctrl_cols      = document.getElementById('cols'),
+      ctrl_rows      = document.getElementById('rows'),
+      ddl_difficulty = document.getElementById('difficulty');
 
-    /*
-        ===========
-        UI ELEMENTS
-        ===========
-    */
+// Containers
+const ctrl_board = document.getElementById('board');
 
-    // Inputs
-    const btn_submit   = document.getElementById('submit'),
-        ctrl_cols      = document.getElementById('cols'),
-        ctrl_rows      = document.getElementById('rows'),
-        ddl_difficulty = document.getElementById('difficulty');
+// Game Info
+const ctrl_numBombs = document.getElementById('numBombs'),
+      ctrl_timer    = document.getElementById('timer');
 
-    // Containers
-    const ctrl_board = document.getElementById('board');
 
-    // Game Info
-    const ctrl_numBombs = document.getElementById('numBombs'),
-          ctrl_timer    = document.getElementById('timer');
 
+const game = (function(boardEl, numBombsEl, timerEl){
 
     /*
         =========
@@ -45,11 +44,8 @@
     }
 
 
-
     function Minesweeper(cols, rows, difficulty, el){
         this.el = el instanceof HTMLElement ? el : document.querySelector(el);
-        // prevent rows from wrapping
-        el.style['width'] = ((cols * 40)).toString() + 'px';
 
         this.cols = cols, this.rows = rows, this.difficulty = difficulty;
 
@@ -58,7 +54,11 @@
         this.init();
     }
 
-    Minesweeper.prototype.reset = function(){
+    Minesweeper.prototype.reset = function(cols, rows, difficulty){
+
+        cols && (this.cols = cols);
+        rows && (this.rows = rows);
+        difficulty && (this.difficulty = difficulty);
 
         this.init();
 
@@ -81,6 +81,9 @@
 
         ctrl_numBombs.innerText = this.numBombs;
 
+        // prevent rows from wrapping
+        this.el.style['width'] = ((this.cols * 40)).toString() + 'px';
+
         this.draw();
     }
 
@@ -97,9 +100,8 @@
                 this.timer.start();
                 this.firstClick = false;
             }
-        }
-        else{
-            _message('No more hints. Work the problem!');
+
+            this.draw()
         }
     }
 
@@ -117,14 +119,12 @@
         if(cell && cell.isBomb && !cell.flagged){
             this.gameOver = true;
             this.timer.stop();
-            _message('You clicked a bomb!<br>Game Over!');
-            new Audio('audio/mario-koopa-kid.mp3').play();
         }
 
         if(this.isSolved()){
-            _message('Congratulations!!<br>You win!!!');
-            new Audio('audio/mario-castle-clear.mp3').play();
             this.gameOver = true;
+            this.solved   = true;
+
             this.timer.stop();
         }
     }
@@ -143,10 +143,12 @@
         ctrl_numBombs.innerText = this.numBombs;
 
         this.draw();
+
         if(this.isSolved()){
-            _message('<h3>Congratulations!!<br>You win!!!</h3>');
-            new Audio('audio/mario-castle-clear.mp3').play();
             this.gameOver = true;
+            this.solved   = true;
+
+            this.timer.stop();
         }
     }
 
@@ -183,12 +185,6 @@
             });
 
         this.draw();
-    }
-
-    Minesweeper.prototype.destroy = function(){
-        this.timer.stop();
-
-        return this;
     }
 
     /*
@@ -326,7 +322,6 @@
                 cell.click();
                 found = true;
             }
-            ctrl_board.innerHTML = this.draw();
         });
     }
 
@@ -483,42 +478,60 @@
         return this;
     }
 
+
     /*
         ==========
-        HELPER FNs
+        INITIALIZE
         ==========
     */
-    function _parents(node, test){
-        let parent = node.parentNode;
-        while(parent !== document){
-            if(test(parent)){
-                return parent;
-            }
-            parent = parent.parentNode;
-        }
+
+    // Game instance
+    const game = new Minesweeper(defaultGame.cols, defaultGame.rows, defaultGame.difficulty, boardEl)
+
+    // Create a proxy to hide internals
+    const proxy = Object.create(null);
+
+    const publicGameMethods = [
+        'clickCell',
+        'flagCell',
+        'hint',
+        'reset',
+        'solve'
+    ];
+
+    // bind public game methods to proxy obj
+    for(let method of publicGameMethods){
+        proxy[method] = game[method].bind(game);
     }
 
-    function _getClickedCell(e){
-        if(/board-cell/.test(e.target.className)){
-            return e.target;
+    // create getters for public game props
+    Object.defineProperties(proxy, {
+        solved: {
+            enumerable: true,
+            get: function(){ return game.solved }
+        },
+        gameOver: {
+            enumerable: true,
+            get: function(){ return game.gameOver }
+        },
+        hints: {
+            enumerable: true,
+            get: function(){ return game.hints }
         }
-        const cell = _parents(e.target, function(el){
-            return /board-cell/.test(el.className)
-        });
+    });
 
-        return cell ? cell : undefined;
-    }
+    return proxy;
 
-    function _getClickedCoords(e){
-        const el = _getClickedCell(e);
-        if(!el) return;
+})(ctrl_board, ctrl_numBombs, ctrl_timer);
 
-        return {
-            x: el.getAttribute('data-x'),
-            y: el.getAttribute('data-y')
-        }
-    }
 
+(() => {
+
+    /*
+        ================
+        DOM INTERACTIONS
+        ================
+    */
     function _message(message, type){
         const msgModal = document.getElementById('message-modal'),
               el       = document.getElementById('message');
@@ -533,23 +546,49 @@
             }
         }, 10000);
     }
-    /*
-        ==========
-        INITIALIZE
-        ==========
-    */
 
-    // Game instance
-    let game = window.game = new Minesweeper(defaultGame.cols, defaultGame.rows, defaultGame.difficulty, ctrl_board);
+    const getClickedCoords = (() => {
 
+        function _parents(node, test){
+            let parent = node.parentNode;
+            while(parent !== document){
+                if(test(parent)){
+                    return parent;
+                }
+                parent = parent.parentNode;
+            }
+        }
+
+        function _getClickedCell(e){
+            if(/board-cell/.test(e.target.className)){
+                return e.target;
+            }
+            const cell = _parents(e.target, function(el){
+                return /board-cell/.test(el.className)
+            });
+
+            return cell;
+        }
+
+        function _getClickedCoords(e){
+            const el = _getClickedCell(e);
+            if(!el) return;
+
+            return {
+                x: el.getAttribute('data-x'),
+                y: el.getAttribute('data-y')
+            }
+        }
+
+        return _getClickedCoords
+    })();
 
     function newGame(){
         const cols       = parseInt(ctrl_cols.value),
               rows       = parseInt(ctrl_rows.value),
               difficulty = difficultyMap[ddl_difficulty.value];
 
-        window.game.destroy();
-        window.game = new Minesweeper(cols, rows, difficulty, ctrl_board);
+        game.reset(cols, rows, difficulty);
         modal('#settings-modal');
     }
 
@@ -557,18 +596,32 @@
     btn_submit.addEventListener('click', newGame);
 
     ctrl_board.addEventListener('click', function(e){
-        const { x, y } = _getClickedCoords(e);
+        const { x, y } = getClickedCoords(e);
 
-        if(x && y) window.game.clickCell(x,y);
+        if(x && y) game.clickCell(x,y);
+
+        if(game.solved){
+            _message('Congratulations!!<br>You win!!!');
+            new Audio('audio/mario-castle-clear.mp3').play();
+        }
+        else if(game.gameOver){
+            _message('You clicked a bomb!<br>Game Over!');
+            new Audio('audio/mario-koopa-kid.mp3').play();
+        }
     });
 
     ctrl_board.addEventListener('contextmenu', function(e){
         if(!e.ctrlKey){
             e.preventDefault();
 
-            const { x, y } = _getClickedCoords(e);
+            const { x, y } = getClickedCoords(e);
 
-            if(x && y) window.game.flagCell(x, y);
+            if(x && y) game.flagCell(x, y);
+
+            if(game.solved){
+                _message('Congratulations!!<br>You win!!!');
+                new Audio('audio/mario-castle-clear.mp3').play();
+            }
         }
     });
 
