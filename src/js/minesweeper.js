@@ -69,14 +69,15 @@
     }
 
     Minesweeper.prototype.init = function(){
-        this.gameOver = false;
-        this.solved   = false;
-        this.hints    = 3;
+        this.gameOver   = false;
+        this.solved     = false;
+        this.hints      = 3;
+        this.firstClick = true;
 
         this.board    = new Board(this.cols, this.rows, this.difficulty);
         this.numBombs = this.board.numBombs;
 
-        this.timer.reset().draw();
+        this.timer.stop().reset().draw();
 
         ctrl_numBombs.innerText = this.numBombs;
 
@@ -91,6 +92,11 @@
         if(this.hints > 0){
             !this.gameOver && this.board.hint();
             --this.hints
+
+            if(this.firstClick){
+                this.timer.start();
+                this.firstClick = false;
+            }
         }
         else{
             _message('No more hints. Work the problem!');
@@ -99,6 +105,11 @@
 
     Minesweeper.prototype.clickCell = function(x, y){
         if(this.gameOver) return;
+
+        if(this.firstClick){
+            this.timer.start();
+            this.firstClick = false;
+        }
 
         const cell = this.board.clickCell(x, y);
         this.draw();
@@ -120,6 +131,11 @@
 
     Minesweeper.prototype.flagCell = function(x, y){
         if(this.gameOver) return
+
+        if(this.firstClick){
+            this.timer.start();
+            this.firstClick = false;
+        }
 
         const cell = this.board.flagCell(x, y);
 
@@ -409,9 +425,7 @@
     function Timer(el){
         this.el = el instanceof HTMLElement ? el : document.querySelector(el);
 
-        this.elapsed = (60 * 58) + 45;
-
-        this.interval = setInterval(this.tick.bind(this), 1000);
+        this.elapsed = 0;
 
         return this;
     }
@@ -448,7 +462,7 @@
     })();
 
     Timer.prototype.reset = function(){
-        return this.stop().set(0).start();
+        return this.set(0);
     }
 
     Timer.prototype.stop = function(){
