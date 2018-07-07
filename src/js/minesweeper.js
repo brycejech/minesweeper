@@ -27,16 +27,16 @@
         CONSTANTS
         =========
     */
-    var difficultyMap = {
+    const difficultyMap = {
         'EASY':         .175,
         'INTERMEDIATE': .2,
         'HARD':         .225,
         'INSANE':       .5
     }
 
-    var BOMB  = '<i class="fas fa-poo"></i>',
-        EMPTY = '<i class="far fa-smile"></i>',
-        FLAG  = '<i class="fab fa-font-awesome-flag"></i>';
+    const BOMB  = '<i class="fas fa-poo"></i>',
+          EMPTY = '<i class="far fa-smile"></i>',
+          FLAG  = '<i class="fab fa-font-awesome-flag"></i>';
 
     const defaultGame = {
         cols: 24,
@@ -70,6 +70,8 @@
 
     Minesweeper.prototype.init = function(){
         this.gameOver = false;
+        this.solved   = false;
+        this.hints    = 3;
 
         this.board    = new Board(this.cols, this.rows, this.difficulty);
         this.numBombs = this.board.numBombs;
@@ -86,7 +88,13 @@
     }
 
     Minesweeper.prototype.hint = function(){
-        !this.gameOver && this.board.hint()
+        if(this.hints > 0){
+            !this.gameOver && this.board.hint();
+            --this.hints
+        }
+        else{
+            _message('No more hints. Work the problem!');
+        }
     }
 
     Minesweeper.prototype.clickCell = function(x, y){
@@ -98,12 +106,12 @@
         if(cell && cell.isBomb && !cell.flagged){
             this.gameOver = true;
             this.timer.stop();
-            _message('<h3>You clicked a bomb!<br>Game Over!</h3>');
+            _message('You clicked a bomb!<br>Game Over!');
             new Audio('audio/mario-koopa-kid.mp3').play();
         }
 
         if(this.isSolved()){
-            _message('<h3>Congratulations!!<br>You win!!!</h3>');
+            _message('Congratulations!!<br>You win!!!');
             new Audio('audio/mario-castle-clear.mp3').play();
             this.gameOver = true;
             this.timer.stop();
@@ -177,7 +185,6 @@
         this.rows      = rows;
         this.numCells  = cols * rows;
         this.numBombs  = Math.round(difficulty * this.numCells);
-        this.hintCount = 0;
 
         this.board = (() => {
             const board = [];
@@ -241,20 +248,22 @@
         }
     }
 
+    Board.prototype.filter = function(fn){
+        const cells = [];
+
+        this.forEach(cell => {
+            if(fn(cell)) cells.push(cell);
+        });
+
+        return cells;
+    }
+
     Board.prototype.getBombs = function(){
-        var bombs = [];
-
-        this.forEach(cell => { if(cell.isBomb) bombs.push(cell) });
-
-        return bombs;
+        return this.filter(cell => cell.isBomb);
     }
 
     Board.prototype.getNonBombs = function(){
-        var nonBombs = [];
-
-        this.forEach(cell => { if(!cell.isBomb) nonBombs.push(cell) });
-
-        return nonBombs;
+        return this.filter(cell => !cell.isBomb);
     }
 
     Board.prototype.init = function(){
@@ -294,19 +303,15 @@
 
     Board.prototype.hint = function(){
 
-        if(this.hintCount <= 2){
-            let found = false;
+        let found = false;
 
-            this.forEach(cell => {
-                if(!found && cell.hidden && cell.numBombs === 0){
-                    cell.click();
-                    found = true;
-                    this.hintCount++;
-                }
-                ctrl_board.innerHTML = this.draw();
-            });
-        }
-        else{ alert('No more hints! Work the problem ;)') }
+        this.forEach(cell => {
+            if(!found && cell.hidden && cell.numBombs === 0){
+                cell.click();
+                found = true;
+            }
+            ctrl_board.innerHTML = this.draw();
+        });
     }
 
     /*
@@ -504,7 +509,7 @@
         const msgModal = document.getElementById('message-modal'),
               el       = document.getElementById('message');
 
-        el.innerHTML = '<div class="content">' + message + '</div>';
+        el.innerHTML = '<div class="content"><h3>' + message + '</h3></div>';
 
         modal(msgModal)
 
