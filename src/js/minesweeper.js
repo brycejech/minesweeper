@@ -1,55 +1,32 @@
 'use strict';
 
-/*
-    ===========
-    UI ELEMENTS
-    ===========
-*/
-const btn_submit     = document.getElementById('submit'),
-      ctrl_cols      = document.getElementById('cols'),
-      ctrl_rows      = document.getElementById('rows'),
-      ddl_difficulty = document.getElementById('difficulty');
 
-// Containers
-const ctrl_board = document.getElementById('board');
+const difficultyMap = {
+    'EASY':         .175,
+    'INTERMEDIATE': .2,
+    'HARD':         .225,
+    'INSANE':       .5
+}
 
-// Game Info
-const ctrl_numBombs = document.getElementById('numBombs'),
-      ctrl_timer    = document.getElementById('timer');
+const defaultGame = {
+    cols: 24,
+    rows: 16,
+    difficulty: difficultyMap['INTERMEDIATE']
+}
 
 
-
-const minesweeper = (function(boardEl, numBombsEl, timerEl){
-
-    /*
-        =========
-        CONSTANTS
-        =========
-    */
-    const difficultyMap = {
-        'EASY':         .175,
-        'INTERMEDIATE': .2,
-        'HARD':         .225,
-        'INSANE':       .5
-    }
+const minesweeper = (function(){
 
     const BOMB  = '<i class="fas fa-poo"></i>',
           EMPTY = '<i class="far fa-smile"></i>',
           FLAG  = '<i class="fab fa-font-awesome-flag"></i>';
 
-    const defaultGame = {
-        cols: 24,
-        rows: 16,
-        difficulty: difficultyMap['INTERMEDIATE']
-    }
 
-
-    function Minesweeper(cols, rows, difficulty, el){
-        this.el = el instanceof HTMLElement ? el : document.querySelector(el);
+    function Minesweeper(cols, rows, difficulty){
 
         this.cols = cols, this.rows = rows, this.difficulty = difficulty;
 
-        this.timer = new Timer(timerEl);
+        this.timer = new Timer();
 
         this.init();
     }
@@ -79,16 +56,12 @@ const minesweeper = (function(boardEl, numBombsEl, timerEl){
 
         this.timer.stop().reset().draw();
 
-        ctrl_numBombs.innerText = this.numBombs;
-
-        // prevent rows from wrapping
-        this.el.style['width'] = ((this.cols * 40)).toString() + 'px';
-
         this.draw();
     }
 
     Minesweeper.prototype.draw = function(){
-        this.el.innerHTML = this.board.draw();
+        // this.el.innerHTML = this.board.draw();
+        return this.board.draw();
     }
 
     Minesweeper.prototype.hint = function(){
@@ -127,6 +100,11 @@ const minesweeper = (function(boardEl, numBombsEl, timerEl){
 
             this.timer.stop();
         }
+
+        return {
+            isBomb: cell.isBomb,
+            hidden: cell.hidden
+        }
     }
 
     Minesweeper.prototype.flagCell = function(x, y){
@@ -140,7 +118,6 @@ const minesweeper = (function(boardEl, numBombsEl, timerEl){
         const cell = this.board.flagCell(x, y);
 
         cell.flagged ? --this.numBombs : ++this.numBombs;
-        ctrl_numBombs.innerText = this.numBombs;
 
         this.draw();
 
@@ -149,6 +126,10 @@ const minesweeper = (function(boardEl, numBombsEl, timerEl){
             this.solved   = true;
 
             this.timer.stop();
+        }
+
+        return {
+            flagged: cell.flagged
         }
     }
 
@@ -417,9 +398,7 @@ const minesweeper = (function(boardEl, numBombsEl, timerEl){
         GAME TIMER
         ==========
     */
-    function Timer(el){
-        this.el = el instanceof HTMLElement ? el : document.querySelector(el);
-
+    function Timer(){
         this.elapsed = 0;
 
         return this;
@@ -428,15 +407,11 @@ const minesweeper = (function(boardEl, numBombsEl, timerEl){
     Timer.prototype.tick = function(){
         ++this.elapsed;
 
-        this.draw();
-
         return this;
     }
 
     Timer.prototype.draw = function(){
-        this.el.innerText = this.format();
-
-        return this;
+        return this.format();
     }
 
     Timer.prototype.format = (() => {
@@ -486,7 +461,7 @@ const minesweeper = (function(boardEl, numBombsEl, timerEl){
     */
 
     // Game instance
-    const game = new Minesweeper(defaultGame.cols, defaultGame.rows, defaultGame.difficulty, boardEl)
+    const game = new Minesweeper(defaultGame.cols, defaultGame.rows, defaultGame.difficulty);
 
     // Create a proxy to hide internals
     const proxy = Object.create(null);
@@ -496,7 +471,8 @@ const minesweeper = (function(boardEl, numBombsEl, timerEl){
         'flagCell',
         'hint',
         'reset',
-        'solve'
+        'solve',
+        'draw'
     ];
 
     // bind public game methods to proxy obj
@@ -521,21 +497,102 @@ const minesweeper = (function(boardEl, numBombsEl, timerEl){
         elapsed: {
             enumerable: true,
             get: function(){ return game.timer.format() }
+        },
+        numBombs: {
+            enumerable: true,
+            get: function(){ return game.numBombs }
         }
     });
 
     return proxy;
 
-})(ctrl_board, ctrl_numBombs, ctrl_timer);
+})();
 
 
 (() => {
+
+
+    /*
+        ===========
+        UI ELEMENTS
+        ===========
+    */
+    const btn_submit     = document.getElementById('submit'),
+          ctrl_cols      = document.getElementById('cols'),
+          ctrl_rows      = document.getElementById('rows'),
+          ddl_difficulty = document.getElementById('difficulty');
+
+    // Containers
+    const ctrl_board = document.getElementById('board');
+
+    // Game Info
+    const ctrl_numBombs = document.getElementById('numBombs'),
+          ctrl_timer    = document.getElementById('timer');
+
+
+    const game = window.game = (() => {
+
+        let timerInterval;
+
+        function reset(cols, rows, difficulty){
+            minesweeper.reset(cols, rows, difficulty);
+            drawBoard();
+        }
+
+        function hint(){
+            minesweeper.hint();
+            drawBoard();
+        }
+
+        function init(){
+            ctrl_board.style.width  = ((defaultGame.cols * 40)).toString() + 'px';
+            ctrl_board.innerHTML    = minesweeper.draw();
+            ctrl_numBombs.innerText = minesweeper.numBombs;
+
+            _drawTimer();
+            clearInterval(timerInterval);
+            timerInterval = setInterval(_drawTimer, 1000);
+        }
+
+        function _drawTimer(){
+            ctrl_timer.innerText = minesweeper.elapsed;
+        }
+
+        init();
+
+        return {
+            reset:   reset,
+            hint:    hint,
+            init:    init,
+            newGame: newGame
+        }
+
+    })();
+
 
     /*
         ================
         DOM INTERACTIONS
         ================
     */
+
+    function drawBoard(){
+        ctrl_board.innerHTML = minesweeper.draw();
+    }
+
+
+    function newGame(){
+        const cols       = parseInt(ctrl_cols.value),
+              rows       = parseInt(ctrl_rows.value),
+              difficulty = difficultyMap[ddl_difficulty.value];
+
+        game.reset(cols, rows, difficulty);
+        modal('#settings-modal');
+
+        game.init();
+        drawBoard();
+    }
+
 
     // Launch modal
     function _message(message){
@@ -555,68 +612,71 @@ const minesweeper = (function(boardEl, numBombsEl, timerEl){
 
     const getClickedCoords = (() => {
 
-        function _parents(node, test){
-            let parent = node.parentNode;
-            while(parent !== document){
-                if(test(parent)){
-                    return parent;
+            function _parents(node, test){
+                let parent = node.parentNode;
+                while(parent !== document){
+                    if(test(parent)){
+                        return parent;
+                    }
+                    parent = parent.parentNode;
                 }
-                parent = parent.parentNode;
             }
-        }
 
-        function _getClickedCell(e){
-            if(/board-cell/.test(e.target.className)){
-                return e.target;
+            function _getClickedCell(e){
+                if(/board-cell/.test(e.target.className)){
+                    return e.target;
+                }
+                const cell = _parents(e.target, function(el){
+                    return /board-cell/.test(el.className)
+                });
+
+                return cell;
             }
-            const cell = _parents(e.target, function(el){
-                return /board-cell/.test(el.className)
-            });
 
-            return cell;
-        }
+            function _getClickedCoords(e){
+                const el = _getClickedCell(e);
+                if(!el) return;
 
-        function _getClickedCoords(e){
-            const el = _getClickedCell(e);
-            if(!el) return;
-
-            return {
-                x: el.getAttribute('data-x'),
-                y: el.getAttribute('data-y')
+                return {
+                    x: el.getAttribute('data-x'),
+                    y: el.getAttribute('data-y')
+                }
             }
-        }
 
-        return _getClickedCoords
-    })();
+            return _getClickedCoords
+        })();
 
-    function newGame(){
-        const cols       = parseInt(ctrl_cols.value),
-              rows       = parseInt(ctrl_rows.value),
-              difficulty = difficultyMap[ddl_difficulty.value];
+    /*
+        ==============
+        EVENT HANDLERS
+        ==============
+    */
 
-        minesweeper.reset(cols, rows, difficulty);
-        modal('#settings-modal');
-    }
+    function leftClick(e){
+        if(minesweeper.gameOver) return;
 
-    // Event Listeners
-    btn_submit.addEventListener('click', newGame);
-
-    ctrl_board.addEventListener('click', function(e){
         const { x, y } = getClickedCoords(e);
 
-        if(x && y) minesweeper.clickCell(x,y);
+        let cell;
+        if(x && y){
+            cell = minesweeper.clickCell(x,y);
+        }
 
         if(minesweeper.solved){
             _message('Congratulations!!<br>You win!!!');
             new Audio('audio/mario-castle-clear.mp3').play();
         }
-        else if(minesweeper.gameOver){
+        else if(cell && cell.isBomb && !cell.hidden && minesweeper.gameOver){
             _message('You clicked a bomb!<br>Game Over!');
             new Audio('audio/mario-koopa-kid.mp3').play();
         }
-    });
 
-    ctrl_board.addEventListener('contextmenu', function(e){
+        drawBoard();
+    }
+
+    function rightClick(e){
+        if(minesweeper.gameOver) return;
+
         if(!e.ctrlKey){
             e.preventDefault();
 
@@ -628,8 +688,16 @@ const minesweeper = (function(boardEl, numBombsEl, timerEl){
                 _message('Congratulations!!<br>You win!!!');
                 new Audio('audio/mario-castle-clear.mp3').play();
             }
+
+            ctrl_numBombs.innerText = minesweeper.numBombs;
+            drawBoard();
         }
-    });
+    }
+
+    // Event Listeners
+    btn_submit.addEventListener('click', newGame);
+    ctrl_board.addEventListener('click', leftClick);
+    ctrl_board.addEventListener('contextmenu', rightClick);
 
     document.addEventListener('keypress', function(e){
         if(e.key === 'Enter'){

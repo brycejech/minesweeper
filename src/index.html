@@ -24,12 +24,12 @@
                         </button>
                     </div>
                     <div class="col-4">
-                        <button id="reset" class="btn btn-block btn-primary" type="button" role="button" onclick="minesweeper.reset()">
+                        <button id="reset" class="btn btn-block btn-primary" type="button" role="button" onclick="game.reset()">
                             <i class="fas fa-redo-alt"></i> Reset
                         </button>
                     </div>
                     <div class="col-4">
-                        <button id="hint" class="btn btn-block btn-primary" type="button" role="button" onclick="minesweeper.hint()">
+                        <button id="hint" class="btn btn-block btn-primary" type="button" role="button" onclick="game.hint()">
                             <i class="far fa-lightbulb"></i> Hint
                         </button>
                     </div>
@@ -40,10 +40,10 @@
             <div class="game-info container container-md">
                 <div class="row">
                     <span class="u-fl-l">
-                        <i class="fas fa-poo"></i> <span id="numBombs">36</span>
+                        <i class="fas fa-poo"></i> <span id="numBombs"></span>
                     </span>
                     <span class="u-fl-r">
-                        <i class="far fa-clock"></i> <span id="timer">00:00</span>
+                        <i class="far fa-clock"></i> <span id="timer"></span>
                     </span>
                 </div>
             </div>
