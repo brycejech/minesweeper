@@ -8,12 +8,6 @@ const difficultyMap = {
     'INSANE':       .5
 }
 
-const defaultGame = {
-    cols: 24,
-    rows: 16,
-    difficulty: difficultyMap['INTERMEDIATE']
-}
-
 
 const minesweeper = (function(){
 
@@ -21,6 +15,11 @@ const minesweeper = (function(){
           EMPTY = '<i class="far fa-smile"></i>',
           FLAG  = '<i class="fab fa-font-awesome-flag"></i>';
 
+    const defaultGame = {
+        cols: 24,
+        rows: 16,
+        difficulty: difficultyMap['INTERMEDIATE']
+    }
 
     function Minesweeper(cols, rows, difficulty){
 
@@ -55,7 +54,6 @@ const minesweeper = (function(){
     }
 
     Minesweeper.prototype.draw = function(){
-        // this.el.innerHTML = this.board.draw();
         return this.board.draw();
     }
 
@@ -68,8 +66,6 @@ const minesweeper = (function(){
                 this.timer.start();
                 this.firstClick = false;
             }
-
-            this.draw()
         }
     }
 
@@ -82,7 +78,6 @@ const minesweeper = (function(){
         }
 
         const cell = this.board.clickCell(x, y);
-        this.draw();
 
         if(cell && cell.isBomb && !cell.flagged){
             this.gameOver = true;
@@ -113,8 +108,6 @@ const minesweeper = (function(){
         const cell = this.board.flagCell(x, y);
 
         cell.flagged ? --this.numBombs : ++this.numBombs;
-
-        this.draw();
 
         if(this.isSolved()){
             this.gameOver = true;
@@ -150,14 +143,12 @@ const minesweeper = (function(){
             .getBombs()
             .forEach((bomb, i) => {
                 bomb.flag();
-                // if(i < this.board.numBombs - 1) bomb.flag();
             });
 
         this.board
             .getNonBombs()
             .forEach((cell, i)=> {
                 cell.click();
-                // if(i < (numNonBombs - 1)) cell.click();
             });
 
         this.draw();
@@ -217,7 +208,7 @@ const minesweeper = (function(){
         const randRow = Math.floor(Math.random() * this.rows),
               randCol = Math.floor(Math.random() * this.cols);
 
-        return this.board[randRow][randCol]
+        return this.board[randRow][randCol];
     }
 
     Board.prototype.get = function(x, y){
