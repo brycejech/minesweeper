@@ -38,11 +38,6 @@ const minesweeper = (function(){
         difficulty && (this.difficulty = difficulty);
 
         this.init();
-
-        const msg = document.getElementById('message');
-
-        if(msg) msg.classList.remove('active');
-
     }
 
     Minesweeper.prototype.init = function(){
@@ -54,7 +49,7 @@ const minesweeper = (function(){
         this.board    = new Board(this.cols, this.rows, this.difficulty);
         this.numBombs = this.board.numBombs;
 
-        this.timer.stop().reset().draw();
+        this.timer.stop().reset();
 
         this.draw();
     }
@@ -501,6 +496,14 @@ const minesweeper = (function(){
         numBombs: {
             enumerable: true,
             get: function(){ return game.numBombs }
+        },
+        cols: {
+            enumerable: true,
+            get: function(){ return game.cols }
+        },
+        rows: {
+            enumerable: true,
+            get: function(){ return game.rows }
         }
     });
 
@@ -536,6 +539,7 @@ const minesweeper = (function(){
 
         function reset(cols, rows, difficulty){
             minesweeper.reset(cols, rows, difficulty);
+            init();
             drawBoard();
         }
 
@@ -545,13 +549,25 @@ const minesweeper = (function(){
         }
 
         function init(){
-            ctrl_board.style.width  = ((defaultGame.cols * 40)).toString() + 'px';
+            ctrl_board.style.width  = ((minesweeper.cols * 40)).toString() + 'px';
             ctrl_board.innerHTML    = minesweeper.draw();
             ctrl_numBombs.innerText = minesweeper.numBombs;
 
             _drawTimer();
             clearInterval(timerInterval);
             timerInterval = setInterval(_drawTimer, 1000);
+        }
+
+        function newGame(){
+            const cols       = parseInt(ctrl_cols.value),
+                  rows       = parseInt(ctrl_rows.value),
+                  difficulty = difficultyMap[ddl_difficulty.value];
+
+            reset(cols, rows, difficulty);
+            window.modal('#settings-modal');
+
+            init();
+            drawBoard();
         }
 
         function _drawTimer(){
@@ -579,20 +595,6 @@ const minesweeper = (function(){
     function drawBoard(){
         ctrl_board.innerHTML = minesweeper.draw();
     }
-
-
-    function newGame(){
-        const cols       = parseInt(ctrl_cols.value),
-              rows       = parseInt(ctrl_rows.value),
-              difficulty = difficultyMap[ddl_difficulty.value];
-
-        game.reset(cols, rows, difficulty);
-        modal('#settings-modal');
-
-        game.init();
-        drawBoard();
-    }
-
 
     // Launch modal
     function _message(message){
@@ -695,7 +697,7 @@ const minesweeper = (function(){
     }
 
     // Event Listeners
-    btn_submit.addEventListener('click', newGame);
+    btn_submit.addEventListener('click', game.newGame);
     ctrl_board.addEventListener('click', leftClick);
     ctrl_board.addEventListener('contextmenu', rightClick);
 
@@ -703,7 +705,7 @@ const minesweeper = (function(){
         if(e.key === 'Enter'){
             const modal = document.getElementById('settings-modal');
             if(/active/.test(modal.className)){
-                newGame()
+                game.newGame()
             }
         }
     });
