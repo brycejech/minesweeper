@@ -21,6 +21,12 @@ const minesweeper = (function(){
         difficulty: difficultyMap['INTERMEDIATE']
     }
 
+    const defaultGame = {
+        cols: 24,
+        rows: 16,
+        difficulty: difficultyMap['INTERMEDIATE']
+    }
+
     function Minesweeper(cols, rows, difficulty){
 
         this.cols = cols, this.rows = rows, this.difficulty = difficulty;
